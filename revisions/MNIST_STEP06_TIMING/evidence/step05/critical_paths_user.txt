@@ -1,0 +1,142 @@
+> PY
+
+=== VIOLATED PATH 1 ===
+Slack (VIOLATED) :        -3.918ns  (required time - arrival time)
+  Source:                 Cfu/height_reg[3]/C
+                            (rising edge-triggered cell FDRE clocked by soc_crg_clkout0  {rise@0.000ns fall@6.667ns period=13.333ns})
+  Destination:            Cfu/product0/CEB2
+                            (rising edge-triggered cell DSP48E1 clocked by soc_crg_clkout0  {rise@0.000ns fall@6.667ns period=13.333ns})
+  Path Group:             soc_crg_clkout0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            13.333ns  (soc_crg_clkout0 rise@13.333ns - soc_crg_clkout0 rise@0.000ns)
+  Data Path Delay:        16.522ns  (logic 7.667ns (46.404%)  route 8.855ns (53.596%))
+  Logic Levels:           16  (CARRY4=5 DSP48E1=1 LUT4=3 LUT6=7)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    4.822ns = ( 18.155 - 13.333 )
+    Source Clock Delay      (SCD):    5.446ns
+    Clock Pessimism Removal (CPR):    0.479ns
+  Clock Uncertainty:      0.070ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.121ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock soc_crg_clkout0 rise edge)
+                                                      0.000     0.000 r
+    R4                                                0.000     0.000 r  clk100 (IN)
+                         net (fo=0)                   0.000     0.000    clk100
+    R4                   IBUF (Prop_ibuf_I_O)         1.475     1.475 r  clk100_IBUF_inst/O
+                         net (fo=1, unplaced)         0.800     2.275    clk100_IBUF
+                         BUFG (Prop_bufg_I_O)         0.096     2.371 r  clk100_IBUF_BUFG_inst/O
+                         net (fo=1, unplaced)         0.584     2.955    clk100_IBUF_BUFG
+                         LUT1 (Prop_lut1_I0_O)        0.124     3.079 r  clk100_inst/O
+                         net (fo=9, unplaced)         0.584     3.663    soc_crg_clkin
+                         MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                      0.088     3.751 r  MMCME2_ADV/CLKOUT0
+                         net (fo=1, unplaced)         0.800     4.551    soc_crg_clkout0
+                         BUFG (Prop_bufg_I_O)         0.096     4.647 r  BUFG/O
+                         net (fo=4631, unplaced)      0.800     5.446    Cfu/out
+                         FDRE                                         r  Cfu/height_reg[3]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.456     5.902 r  Cfu/height_reg[3]/Q
+                         net (fo=24, unplaced)        1.029     6.931    Cfu/p_0_in[3]
+                         LUT6 (Prop_lut6_I0_O)        0.295     7.226 r  Cfu/valid_conv4_i_66/O
+                         net (fo=1, unplaced)         0.473     7.699    Cfu/valid_conv4_i_66_n_0
+                         CARRY4 (Prop_carry4_DI[3]_CO[3])
+                                                      0.396     8.095 r  Cfu/valid_conv4_i_49/CO[3]
+                         net (fo=1, unplaced)         0.009     8.104    Cfu/valid_conv4_i_49_n_0
+                         CARRY4 (Prop_carry4_CI_O[1])
+                                                      0.337     8.441 r  Cfu/valid_conv4_i_51/O[1]
+                         net (fo=2, unplaced)         0.622     9.063    Cfu/valid_conv4_i_51_n_6
+                         LUT4 (Prop_lut4_I1_O)        0.306     9.369 r  Cfu/valid_conv4_i_50/O
+                         net (fo=2, unplaced)         0.460     9.829    Cfu/valid_conv4_i_50_n_0
+                         LUT6 (Prop_lut6_I3_O)        0.124     9.953 r  Cfu/valid_conv4_i_17/O
+                         net (fo=2, unplaced)         0.650    10.603    Cfu/valid_conv4_i_17_n_0
+                         CARRY4 (Prop_carry4_DI[1]_CO[3])
+                                                      0.520    11.123 r  Cfu/valid_conv4_i_3/CO[3]
+                         net (fo=1, unplaced)         0.000    11.123    Cfu/valid_conv4_i_3_n_0
+                         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.117    11.240 r  Cfu/valid_conv4_i_2/CO[3]
+                         net (fo=1, unplaced)         0.000    11.240    Cfu/valid_conv4_i_2_n_0
+                         CARRY4 (Prop_carry4_CI_O[0])
+                                                      0.232    11.472 r  Cfu/valid_conv4_i_1/O[0]
+                         net (fo=3, unplaced)         0.800    12.272    Cfu/p_0_in1_in[15]
+                         DSP48E1 (Prop_dsp48e1_A[15]_P[18])
+                                                      4.016    16.288 f  Cfu/valid_conv4/P[18]
+                         net (fo=1, unplaced)         0.800    17.088    Cfu/valid_conv4_n_87
+                         LUT4 (Prop_lut4_I3_O)        0.124    17.212 f  Cfu/out_index[15]_i_52/O
+                         net (fo=1, unplaced)         0.902    18.114    Cfu/out_index[15]_i_52_n_0
+                         LUT6 (Prop_lut6_I3_O)        0.124    18.238 f  Cfu/out_index[15]_i_34/O
+                         net (fo=1, unplaced)         0.449    18.687    Cfu/out_index[15]_i_34_n_0
+                         LUT6 (Prop_lut6_I5_O)        0.124    18.811 f  Cfu/out_index[15]_i_21/O
+                         net (fo=1, unplaced)         0.449    19.260    Cfu/out_index[15]_i_21_n_0
+                         LUT4 (Prop_lut4_I3_O)        0.124    19.384 f  Cfu/out_index[15]_i_13/O
+                         net (fo=1, unplaced)         0.449    19.833    Cfu/pool/ox_reg[0]_4
+                         LUT6 (Prop_lut6_I5_O)        0.124    19.957 r  Cfu/pool/out_index[15]_i_3/O
+                         net (fo=8, unplaced)         0.487    20.444    VexRiscv/rsp_valid_reg
+                         LUT6 (Prop_lut6_I5_O)        0.124    20.568 r  VexRiscv/kernel_index[15]_i_4/O
+                         net (fo=5, unplaced)         0.477    21.045    Cfu/pool/captured_reg[0]
+                         LUT6 (Prop_lut6_I3_O)        0.124    21.169 r  Cfu/pool/acc[31]_i_1/O
+                         net (fo=36, unplaced)        0.800    21.968    Cfu/pool_n_18
+                         DSP48E1                                      r  Cfu/product0/CEB2
+  -------------------------------------------------------------------    -------------------
+
+                         (clock soc_crg_clkout0 rise edge)
+                                                     13.333    13.333 r
+    R4                                                0.000    13.333 r  clk100 (IN)
+                         net (fo=0)                   0.000    13.333    clk100
+    R4                   IBUF (Prop_ibuf_I_O)         1.405    14.738 r  clk100_IBUF_inst/O
+                         net (fo=1, unplaced)         0.760    15.498    clk100_IBUF
+                         BUFG (Prop_bufg_I_O)         0.091    15.589 r  clk100_IBUF_BUFG_inst/O
+                         net (fo=1, unplaced)         0.439    16.028    clk100_IBUF_BUFG
+                         LUT1 (Prop_lut1_I0_O)        0.100    16.128 r  clk100_inst/O
+
+=== VIOLATED PATH 2 ===
+Slack (VIOLATED) :        -3.901ns  (required time - arrival time)
+  Source:                 Cfu/height_reg[3]/C
+                            (rising edge-triggered cell FDRE clocked by soc_crg_clkout0  {rise@0.000ns fall@6.667ns period=13.333ns})
+  Destination:            Cfu/product0__0/CEA2
+                            (rising edge-triggered cell DSP48E1 clocked by soc_crg_clkout0  {rise@0.000ns fall@6.667ns period=13.333ns})
+  Path Group:             soc_crg_clkout0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            13.333ns  (soc_crg_clkout0 rise@13.333ns - soc_crg_clkout0 rise@0.000ns)
+  Data Path Delay:        16.522ns  (logic 7.667ns (46.404%)  route 8.855ns (53.596%))
+  Logic Levels:           16  (CARRY4=5 DSP48E1=1 LUT4=3 LUT6=7)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    4.822ns = ( 18.155 - 13.333 )
+    Source Clock Delay      (SCD):    5.446ns
+    Clock Pessimism Removal (CPR):    0.479ns
+  Clock Uncertainty:      0.070ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.121ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock soc_crg_clkout0 rise edge)
+
+=== VIOLATED PATH 3 ===
+Slack (VIOLATED) :        -3.901ns  (required time - arrival time)
+  Source:                 Cfu/height_reg[3]/C
+                            (rising edge-triggered cell FDRE clocked by soc_crg_clkout0  {rise@0.000ns fall@6.667ns period=13.333ns})
+  Destination:            Cfu/product_reg/CEA2
+                            (rising edge-triggered cell DSP48E1 clocked by soc_crg_clkout0  {rise@0.000ns fall@6.667ns period=13.333ns})
+  Path Group:             soc_crg_clkout0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            13.333ns  (soc_crg_clkout0 rise@13.333ns - soc_crg_clkout0 rise@0.000ns)
+  Data Path Delay:        16.522ns  (logic 7.667ns (46.404%)  route 8.855ns (53.596%))
+  Logic Levels:           16  (CARRY4=5 DSP48E1=1 LUT4=3 LUT6=7)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    4.822ns = ( 18.155 - 13.333 )
+    Source Clock Delay      (SCD):    5.446ns
+    Clock Pessimism Removal (CPR):    0.479ns
+  Clock Uncertainty:      0.070ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.121ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock soc_crg_clkout0 rise edge)
+⦗OSS CAD Suite⦘ ksrtakosar@DESKTOP-JU6NDQJ:~$

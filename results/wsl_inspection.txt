@@ -1,0 +1,348 @@
+
+=== HOST ===
+Linux DESKTOP-JU6NDQJ 6.18.33.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun 18 21:54:43 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+
+=== TOOLS ===
+/home/ksrtakosar/tools/oss-cad-suite/py3bin/python3
+/usr/bin/gcc
+/usr/bin/make
+/usr/bin/git
+/home/ksrtakosar/tools/oss-cad-suite/bin/verilator
+/home/ksrtakosar/tools/oss-cad-suite/bin/iverilog
+/home/ksrtakosar/tools/oss-cad-suite/bin/yosys
+/home/ksrtakosar/riscv64-unknown-elf-gcc-10.1.0-2020.08.2-x86_64-linux-ubuntu14/bin/riscv64-unknown-elf-gcc
+/mnt/c/Users/ksrta/RISC-V/picorv32-main/riscv/bin/riscv32-unknown-elf-gcc
+/home/ksrtakosar/bin/vivado
+python: /home/ksrtakosar/tools/oss-cad-suite/bin/tabbypy3
+numpy False
+torch False
+amaranth True
+litex False
+migen True
+
+=== CFU PLAYGROUND ===
+7f8ec4147b39db98534f8a10f9ddb1c26aca5648
+ proj/proj.mk                             |  2 +-
+ soc/board_specific_workflows/__init__.py | 51 +++++++++++---------------------
+ soc/sim.py                               |  2 +-
+ third_party/python/amaranth              |  0
+ third_party/python/litex                 |  0
+ 5 files changed, 20 insertions(+), 35 deletions(-)
+
+FILE /home/ksrtakosar/CFU-Playground/common/src/cfu.h
+/*
+ * Copyright 2021 The CFU-Playground Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef CFU_H
+#define CFU_H
+
+#include <stdint.h>
+
+#include "riscv.h"
+#include "software_cfu.h"
+
+/* riscv.h defines a macro:
+
+    #define opcode_R(opcode, funct3, funct7, rs1, rs2)
+
+   that returns at 32b value.  The opcode must be "CUSTOM0" (also defined in
+   riscv.h).
+
+   'func3' is used as functionID sent to the CFU.
+
+*/
+
+// =============== Access the custom instruction
+
+// generic name for each custom instruction - via hardware
+#define cfu_op_hw(funct3, funct7, rs1, rs2) \
+  opcode_R(CUSTOM0, funct3, funct7, (rs1), (rs2))
+#define cfu_op0_hw(funct7, rs1, rs2) cfu_op_hw(0, funct7, rs1, rs2)
+#define cfu_op1_hw(funct7, rs1, rs2) cfu_op_hw(1, funct7, rs1, rs2)
+#define cfu_op2_hw(funct7, rs1, rs2) cfu_op_hw(2, funct7, rs1, rs2)
+#define cfu_op3_hw(funct7, rs1, rs2) cfu_op_hw(3, funct7, rs1, rs2)
+#define cfu_op4_hw(funct7, rs1, rs2) cfu_op_hw(4, funct7, rs1, rs2)
+#define cfu_op5_hw(funct7, rs1, rs2) cfu_op_hw(5, funct7, rs1, rs2)
+#define cfu_op6_hw(funct7, rs1, rs2) cfu_op_hw(6, funct7, rs1, rs2)
+#define cfu_op7_hw(funct7, rs1, rs2) cfu_op_hw(7, funct7, rs1, rs2)
+
+// generic name for each custom instruction - via software
+#define cfu_op_sw(funct3, funct7, rs1, rs2) \
+  software_cfu(funct3, funct7, rs1, rs2)
+#define cfu_op0_sw(funct7, rs1, rs2) cfu_op_sw(0, funct7, rs1, rs2)
+#define cfu_op1_sw(funct7, rs1, rs2) cfu_op_sw(1, funct7, rs1, rs2)
+#define cfu_op2_sw(funct7, rs1, rs2) cfu_op_sw(2, funct7, rs1, rs2)
+#define cfu_op3_sw(funct7, rs1, rs2) cfu_op_sw(3, funct7, rs1, rs2)
+#define cfu_op4_sw(funct7, rs1, rs2) cfu_op_sw(4, funct7, rs1, rs2)
+#define cfu_op5_sw(funct7, rs1, rs2) cfu_op_sw(5, funct7, rs1, rs2)
+#define cfu_op6_sw(funct7, rs1, rs2) cfu_op_sw(6, funct7, rs1, rs2)
+#define cfu_op7_sw(funct7, rs1, rs2) cfu_op_sw(7, funct7, rs1, rs2)
+
+// generic name for each custom instruction - switchable
+#define cfu_op0(funct7, rs1, rs2) cfu_op(0, funct7, rs1, rs2)
+#define cfu_op1(funct7, rs1, rs2) cfu_op(1, funct7, rs1, rs2)
+#define cfu_op2(funct7, rs1, rs2) cfu_op(2, funct7, rs1, rs2)
+#define cfu_op3(funct7, rs1, rs2) cfu_op(3, funct7, rs1, rs2)
+#define cfu_op4(funct7, rs1, rs2) cfu_op(4, funct7, rs1, rs2)
+#define cfu_op5(funct7, rs1, rs2) cfu_op(5, funct7, rs1, rs2)
+#define cfu_op6(funct7, rs1, rs2) cfu_op(6, funct7, rs1, rs2)
+#define cfu_op7(funct7, rs1, rs2) cfu_op(7, funct7, rs1, rs2)
+
+// =============== Switch HW vs SW
+
+#ifdef CFU_SOFTWARE_DEFINED
+#define cfu_op(funct3, funct7, rs1, rs2) cfu_op_sw(funct3, funct7, rs1, rs2)
+#else
+#define cfu_op(funct3, funct7, rs1, rs2) cfu_op_hw(funct3, funct7, rs1, rs2)
+#endif
+
+#endif  // CFU_H
+FILE /home/ksrtakosar/CFU-Playground/proj/proj.mk
+#!/usr/bin/env python3
+# Copyright 2021 The CFU-Playground Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.SHELL := /bin/bash
+
+# Common build rules for all projects. Included by project makefiles.
+
+# There are three execution environments supported by this makefile
+#
+# * Arty A7
+# * Renode
+# * Verilator simulation
+#
+# Arty builds require 3 parts:
+# - SoC Gateware
+# - SoC Software - BIOS, libraries and #includes
+# - The main C program 
+#
+# Renode builds are quite similar to Arty, and use the same Soc Software
+# and C program builds.
+#
+# Simulator builds are a little different:
+# - Verilator C++ instead of Gateware
+# - Soc Software is different due to the simulator having a different 
+#   set of peripherals
+# - The main C program requires rebuilding since it uses different Soc 
+#   Software.
+#
+# To run on Arty (from within proj/xxx subdirectory):
+# $ make prog    # Builds and programs gateware
+# $ make load    # Builds and loads C program
+#
+# To run on Renode:
+# $ make renode  # Builds and runs C program
+#
+# To run in simulation:
+# $ make load PLATFORM=sim
+
+export UART_SPEED ?= 1843200
+# Need a slower baudrate when communicating with Serv
+ifdef SERV
+export UART_SPEED = 115200
+endif
+
+export PROJ       := $(lastword $(subst /, ,${CURDIR}))
+export CFU_ROOT   := $(realpath $(CURDIR)/../..)
+export PLATFORM   ?= common_soc
+export TARGET     ?= digilent_nexys_video
+export TTY        ?= $(or $(wildcard /dev/ttyUSB?), $(wildcard /dev/ttyACM?))
+
+RUN_MENU_ITEMS    ?=1 1 1
+TEST_MENU_ITEMS   ?=5
+
+PLATFORMS=common_soc sim hps
+ifneq '$(PLATFORM)' '$(findstring $(PLATFORM),$(PLATFORMS))'
+$(error PLATFORM must be one of following: $(PLATFORMS))
+endif
+
+ifneq 'common_soc' '$(PLATFORM)'
+TARGET := $(PLATFORM)
+endif
+
+SOC_DIR          := $(CFU_ROOT)/soc
+SOC_BUILD_NAME   := $(TARGET).$(PROJ)
+SOC_BUILD_DIR    := $(SOC_DIR)/build/$(SOC_BUILD_NAME)
+SOC_SOFTWARE_DIR := $(SOC_BUILD_DIR)/software
+export SOC_SOFTWARE_DIR
+SOC_GATEWARE_DIR := $(SOC_BUILD_DIR)/gateware
+
+# Make software build dependent on platform
+export DEFINES    += PLATFORM_$(PLATFORM)
+export DEFINES    += PLATFORM=$(PLATFORM)
+
+# We can specify NOT compiling the TFLite-micro library
+ifdef SKIP_TFLM
+export DEFINES    += SKIP_TFLM
+endif
+
+SHELL           := /bin/bash
+CRC             := 
+#CRC             := --no-crc
+
+#
+# tools we use
+COPY := /bin/cp -a
+RM := /bin/rm -rf
+MKDIR := /bin/mkdir
+
+#
+# TODO: search upward until we find the root
+# ... or get CFU_ROOT from an env variable
+#
+
+LXTERM       := $(SOC_DIR)/bin/litex_term
+BITSTREAM    := $(SOC_GATEWARE_DIR)/$(PLATFORM).bit
+
+PROJ_DIR        := $(realpath .)
+CFU_GEN         := $(PROJ_DIR)/cfu_gen.py
+CFU_VERILOG     := $(if $(wildcard $(PROJ_DIR)/cfu.sv),$(PROJ_DIR)/cfu.sv,$(PROJ_DIR)/cfu.v)
+BUILD_DIR       := $(PROJ_DIR)/build
+PYRUN           := $(CFU_ROOT)/scripts/pyrun
+
+# Optional additional arguments for cfu_gen
+CFU_GEN_EXTRA_ARGS ?=
+
+# Additional dependencies for assembling the build directory
+BUILD_DIR_EXTRA_DEP ?=
+
+# Matching pattern used by pytest to find unit tests
+PYTEST_PATTERN ?= 'test_*.py'
+
+COMMON_DIR         := $(CFU_ROOT)/common
+RVI_DIR            := $(COMMON_DIR)/renode-verilator-integration
+COMMON_FILES       := $(shell find $(COMMON_DIR) -type f)
+MLCOMMONS_SRC_DIR  := $(CFU_ROOT)/third_party/mlcommons
+SAXON_SRC_DIR      := $(CFU_ROOT)/third_party/SaxonSoc
+DONUT_SRC_DIR      := $(CFU_ROOT)/third_party/litex-donut
+RENODE_DIR         := $(CFU_ROOT)/third_party/renode
+VIL_DIR            := $(RENODE_DIR)/verilator-integration-library
+LITEX_RENODE_DIR   := $(CFU_ROOT)/third_party/python/litex-renode
+SRC_DIR            := $(abspath $(PROJ_DIR)/src)
+
+TFLM_SRC_DIR       := $(CFU_ROOT)/third_party/tflite-micro
+TFLM_MAKE_DIR      := $(TFLM_SRC_DIR)/tensorflow/lite/micro/tools/make
+TFLM_TP_DIR        := $(TFLM_SRC_DIR)/third_party
+
+# Copy every file found in these directories, except those excluded
+TFLM_COPY_SRC_DIRS := \
+	tensorflow/lite \
+	tensorflow/lite/c \
+	tensorflow/lite/core/api \
+	tensorflow/lite/core/c \
+	tensorflow/lite/kernels \
+	tensorflow/lite/kernels/internal \
+	tensorflow/lite/kernels/internal/optimized \
+	tensorflow/lite/kernels/internal/reference \
+	tensorflow/lite/kernels/internal/reference/integer_ops \
+	tensorflow/lite/micro \
+	tensorflow/lite/micro/kernels \
+	tensorflow/lite/micro/memory_planner \
+	tensorflow/lite/micro/arena_allocator \
+	tensorflow/lite/micro/tflite_bridge \
+	tensorflow/lite/schema
+
+TFLM_FIND_PARAMS := \
+	-maxdepth 1 -type f \
+	-not -name '*_test*' \
+	-regex '.*\.\(h\|c\|cc\)'
+
+# Just copy data files from these dirs
+TFLM_COPY_DATA_DIRS := \
+	tensorflow/lite/micro/examples/magic_wand \
+	tensorflow/lite/micro/examples/micro_speech/micro_features \
+	tensorflow/lite/micro/examples/person_detection \
+	tensorflow/lite/micro/models \
+	tensorflow/lite/micro/kernels/testdata \
+
+SOFTWARE_BIN     := $(BUILD_DIR)/software.bin
+SOFTWARE_ELF     := $(BUILD_DIR)/software.elf
+SOFTWARE_LOG     := $(BUILD_DIR)/software.log
+UNITTEST_LOG     := $(BUILD_DIR)/unittest.log
+
+# Directory where we build the project-specific gateware
+SOC_DIR      := $(CFU_ROOT)/soc
+HPS_MK       := $(MAKE) -C $(SOC_DIR) -f $(SOC_DIR)/hps.mk
+SIM_MK       := $(MAKE) -C $(SOC_DIR) -f $(SOC_DIR)/sim.mk SOFTWARE_BIN=$(SOFTWARE_BIN)
+COMMON_SOC_MK := $(MAKE) -C $(SOC_DIR) -f $(SOC_DIR)/common_soc.mk
+
+ifeq '$(PLATFORM)' 'hps'
+	SOC_MK   := $(HPS_MK)
+
+FILE /home/ksrtakosar/CFU-Playground/proj/example_cfu/Makefile
+#!/bin/env python
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This variable lists symbols to define to the C preprocessor
+export DEFINES := PLACEHOLDER
+
+# Uncomment this line to use software defined CFU
+# DEFINES += CFU_SOFTWARE_DEFINED
+
+# Uncomment this line to skip debug code (large effect on performance)
+DEFINES += NDEBUG
+
+# Uncomment this line to skip individual profiling output (has minor effect on performance).
+#DEFINES += NPROFILE
+
+# Uncomment to include specified model in built binary
+DEFINES += INCLUDE_MODEL_PDTI8
+#DEFINES += INCLUDE_MODEL_MICRO_SPEECH
+#DEFINES += INCLUDE_MODEL_MAGIC_WAND
+#DEFINES += INCLUDE_MODEL_MNV2
+#DEFINES += INCLUDE_MODEL_HPS
+#DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_ANOMD
+#DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_IMGC
+#DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_KWS
+#DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_VWW
+
+# Uncomment to include all TFLM examples (pdti8, micro_speech, magic_wand)
+#DEFINES += INCLUDE_ALL_TFLM_EXAMPLES
+
+# Tests are in implementation files in this project
+PYTEST_PATTERN := '*.py'
+
+include ../proj.mk
+
+=== RELEVANT TARGET/BRIDGE FILE NAMES ===
+
+=== KNOWN WINDOWS BRIDGE DIRECTORY ===
+CNN_Fusion_Standalone_A7
+digilent_nexys4ddr
+
+Inspection complete. Existing projects were not modified.

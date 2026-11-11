@@ -1,0 +1,7 @@
+STEP07: clock LUT/group/voltage issues resolved.
+Routing complete. Overall WNS=-2.888 ns, one failing reset endpoint.
+System-clock intra-domain WNS=+0.116 ns.
+Failure: soc_basesoc_reset_re_reg -> FDCE/D (75 MHz -> 100 MHz).
+This run only audits the existing reset chain; no design changes.
+Next: review CDC/chain and choose a justified reset correction.
+No board execution or hardware cycle measurements yet.

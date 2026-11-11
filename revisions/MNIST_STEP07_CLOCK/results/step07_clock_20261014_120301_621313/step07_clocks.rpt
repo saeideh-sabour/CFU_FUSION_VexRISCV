@@ -1,0 +1,82 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2024.2 (win64) Build 5239630 Fri Nov 08 22:35:27 MST 2024
+| Date         : Wed Oct 14 12:13:54 2026
+| Host         : DESKTOP-JU6NDQJ running 64-bit major release  (build 9200)
+| Command      : report_clocks -file step07_clocks.rpt
+| Design       : digilent_nexys_video
+| Device       : 7a200t-sbg484
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Physopt postRoute
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Clock Report
+
+
+Attributes
+  P: Propagated
+  G: Generated
+  A: Auto-derived
+  R: Renamed
+  V: Virtual
+  I: Inverted
+  S: Pin phase-shifted with Latency mode
+
+Clock                        Period(ns)  Waveform(ns)   Attributes  Sources
+clk100                       10.000      {0.000 5.000}  P           {clk100}
+soc_builder_basesoc_mmcm_fb  10.000      {0.000 5.000}  P,G,A       {MMCME2_ADV/CLKFBOUT}
+soc_crg_clkout0              13.333      {0.000 6.667}  P,G,A       {MMCME2_ADV/CLKOUT0}
+soc_crg_clkout1              3.333       {0.000 1.667}  P,G,A       {MMCME2_ADV/CLKOUT1}
+soc_crg_clkout2              3.333       {0.833 2.500}  P,G,A       {MMCME2_ADV/CLKOUT2}
+soc_crg_clkout3              5.000       {0.000 2.500}  P,G,A       {MMCME2_ADV/CLKOUT3}
+
+
+====================================================
+Generated Clocks
+====================================================
+
+Generated Clock     : soc_builder_basesoc_mmcm_fb
+Master Source       : MMCME2_ADV/CLKIN1
+Master Clock        : clk100
+Multiply By         : 1
+Generated Sources   : {MMCME2_ADV/CLKFBOUT}
+
+Generated Clock     : soc_crg_clkout0
+Master Source       : MMCME2_ADV/CLKIN1
+Master Clock        : clk100
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 1.667 3.333}
+Generated Sources   : {MMCME2_ADV/CLKOUT0}
+
+Generated Clock     : soc_crg_clkout1
+Master Source       : MMCME2_ADV/CLKIN1
+Master Clock        : clk100
+Multiply By         : 3
+Generated Sources   : {MMCME2_ADV/CLKOUT1}
+
+Generated Clock     : soc_crg_clkout2
+Master Source       : MMCME2_ADV/CLKIN1
+Master Clock        : clk100
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.833 -2.500 -5.833}
+Generated Sources   : {MMCME2_ADV/CLKOUT2}
+
+Generated Clock     : soc_crg_clkout3
+Master Source       : MMCME2_ADV/CLKIN1
+Master Clock        : clk100
+Multiply By         : 2
+Generated Sources   : {MMCME2_ADV/CLKOUT3}
+
+
+
+====================================================
+User Uncertainty
+====================================================
+
+
+
+====================================================
+User Jitter
+====================================================
+
+

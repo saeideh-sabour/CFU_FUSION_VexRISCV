@@ -1,0 +1,37 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2024.2 (win64) Build 5239630 Fri Nov 08 22:35:27 MST 2024
+| Date         : Wed Oct 14 11:43:01 2026
+| Host         : DESKTOP-JU6NDQJ running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -file step06_utilization_hierarchical_synth.rpt
+| Design       : digilent_nexys_video
+| Device       : xc7a200tsbg484-1
+| Speed File   : -1
+| Design State : Synthesized
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++----------------------------+------------------+------------+------------+---------+------+------+--------+--------+------------+
+|          Instance          |      Module      | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs | RAMB36 | RAMB18 | DSP Blocks |
++----------------------------+------------------+------------+------------+---------+------+------+--------+--------+------------+
+| digilent_nexys_video       |            (top) |       5987 |       5809 |     176 |    2 | 4184 |     15 |     26 |         17 |
+|   (digilent_nexys_video)   |            (top) |       2057 |       1911 |     144 |    2 | 2292 |     10 |     17 |          0 |
+|   Cfu                      |              Cfu |        978 |        946 |      32 |    0 |  427 |      4 |      1 |         13 |
+|     (Cfu)                  |              Cfu |        572 |        548 |      24 |    0 |  345 |      3 |      1 |          9 |
+|     mac4                   |        MnistMac4 |        159 |        159 |       0 |    0 |    0 |      0 |      0 |          4 |
+|     pool                   |     MnistPool2x2 |        247 |        239 |       8 |    0 |   82 |      1 |      0 |          0 |
+|   VexRiscv                 |         VexRiscv |       2968 |       2968 |       0 |    0 | 1465 |      1 |      8 |          4 |
+|     (VexRiscv)             |         VexRiscv |       1502 |       1502 |       0 |    0 | 1306 |      0 |      2 |          4 |
+|     IBusCachedPlugin_cache | InstructionCache |        893 |        893 |       0 |    0 |  100 |      1 |      1 |          0 |
+|     dataCache_1            |        DataCache |        573 |        573 |       0 |    0 |   59 |      0 |      5 |          0 |
++----------------------------+------------------+------------+------------+---------+------+------+--------+--------+------------+
+
+

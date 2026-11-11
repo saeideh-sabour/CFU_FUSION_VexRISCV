@@ -1,0 +1,1 @@
+RTL not yet implemented. See docs/AUDIT_FA.md for architecture proposal and PROJECT_STATE.md for next actions. Do not report synthesis/simulation PASS or hardware benchmark results from this audit package.

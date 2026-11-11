@@ -1,0 +1,80 @@
+// CFU Playground entry point. Called by Project menu (normally option 3).
+// Hardware calls are explicit *_hw; no software emulation of the custom unit.
+#include <stdint.h>
+#include <stdio.h>
+#include "cfu.h"
+#define main scalar_reference_main
+#include "cpu_reference.c"
+#undef main
+#include "cfu_driver.h"
+uint32_t mnist_cfu_call(unsigned family,unsigned fn,uint32_t a,uint32_t b){
+ uint32_t v=0x80000005u;
+ asm volatile("" ::: "memory");
+ if(family==0){
+  switch(fn){
+   case 0:v=cfu_op0_hw(0,a,b);break;case 1:v=cfu_op0_hw(1,a,b);break;
+   case 2:v=cfu_op0_hw(2,a,b);break;case 3:v=cfu_op0_hw(3,a,b);break;
+   case 4:v=cfu_op0_hw(4,a,b);break;case 5:v=cfu_op0_hw(5,a,b);break;
+   case 6:v=cfu_op0_hw(6,a,b);break;case 7:v=cfu_op0_hw(7,a,b);break;
+  }
+ }else if(family==1){
+  switch(fn){
+   case 0:v=cfu_op1_hw(0,a,b);break;case 1:v=cfu_op1_hw(1,a,b);break;
+   case 2:v=cfu_op1_hw(2,a,b);break;case 3:v=cfu_op1_hw(3,a,b);break;
+  }
+ }
+ asm volatile("" ::: "memory");return v;
+}
+static inline uint32_t cycles32(){
+ uint32_t v;asm volatile("rdcycle %0":"=r"(v)::"memory");return v;
+}
+static int run_case(unsigned mode,unsigned n,uint32_t stages[4],uint32_t *total){
+ uint32_t start=cycles32(),t=start;
+ if(mode==0){
+  conv(data_input+n*784,data_conv1_weights,c1,1,8,28,28,0,0,data_conv1_q31);
+  pool(c1,p1,8,28,28);
+ }else{
+  if(cfu_conv_layer(data_input+n*784,data_conv1_weights,data_conv1_q31,28,28,1,8,0,0,mode,c1,p1))return -1;
+  if(mode==1 && cfu_pool_layer(c1,p1,28,28,8))return -1;
+ }
+ uint32_t now=cycles32();stages[0]=now-t;t=now;
+ if(mode==0){
+  conv(p1,data_conv2_weights,c2,8,16,14,14,0,0,data_conv2_q31);pool(c2,p2,16,14,14);
+ }else{
+  if(cfu_conv_layer(p1,data_conv2_weights,data_conv2_q31,14,14,8,16,0,0,mode,c2,p2))return -1;
+  if(mode==1 && cfu_pool_layer(c2,p2,14,14,16))return -1;
+ }
+ now=cycles32();stages[1]=now-t;t=now;
+ fc(p2,data_fc1_weights,f1,784,64,0,70,data_fc1_q31);
+ for(int i=0;i<64;i++)r1[i]=f1[i]<70?70:f1[i];
+ now=cycles32();stages[2]=now-t;t=now;
+ fc(r1,data_fc2_weights,f2,64,10,70,73,data_fc2_q31);
+ now=cycles32();stages[3]=now-t;*total=now-start;
+ return 0;
+}
+void do_proj_menu(void){
+ puts("MNIST_CFU_FUSION_20261013_V1 STEP03");
+ puts("Timing: quantized input -> Conv/Pool/FC logits; excludes verification/UART.");
+ puts("CFU timings include input/weight/config transfers and output drain.");
+ puts("32-bit rdcycle delta; each case must complete within one counter wrap.");
+ puts("CPU_ONLY here uses same SoC containing CFU; separate no-CFU synthesis required for resource baseline.");
+ unsigned errors=0;
+ const char *names[]={"CPU_ONLY","CFU_UNFUSED","CFU_FUSED","CFU_BOTH"};
+ for(unsigned mode=0;mode<4;mode++){
+  if(mode && mnist_cfu_call(0,7,0,0)!=0x43465531){puts("FAIL CFU identity");return;}
+  uint32_t stages[4],total;
+  if(run_case(mode,0,stages,&total)){puts("FAIL warmup");return;}
+  for(unsigned n=0;n<10;n++){
+   if(run_case(mode,n,stages,&total)){puts("FAIL driver");return;}
+   if(mode!=2){errors+=verify("conv1",c1,data_conv1+n*6272,6272);errors+=verify("conv2",c2,data_conv2+n*3136,3136);}
+   errors+=verify("pool1",p1,data_conv1_pool+n*1568,1568);errors+=verify("pool2",p2,data_conv2_pool+n*784,784);
+   errors+=verify("fc1",f1,data_fc1+n*64,64);errors+=verify("fc1_relu",r1,data_fc1_relu+n*64,64);errors+=verify("fc2",f2,data_fc2+n*10,10);
+   int pred=0;for(int i=1;i<10;i++)if(f2[i]>f2[pred])pred=i;
+   if(pred!=data_labels[n])++errors;
+   printf("RESULT,%s,%u,label=%u,pred=%d,conv1pool1=%lu,conv2pool2=%lu,fc1relu=%lu,fc2=%lu,total=%lu,errors=%u\n",
+    names[mode],n,data_labels[n],pred,(unsigned long)stages[0],(unsigned long)stages[1],(unsigned long)stages[2],(unsigned long)stages[3],(unsigned long)total,errors);
+  }
+ }
+ puts(errors?"MNIST_RISCV FAIL":"MNIST_RISCV PASS");
+ puts("Record target, clock, compiler and execution environment with these results.");
+}

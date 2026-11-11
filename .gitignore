@@ -1,0 +1,25 @@
+﻿# Build outputs
+**/build_*/
+**/build/
+**/build-*/
+
+# Vivado generated files
+*.jou
+*.log
+*.str
+*.wdb
+*.vcd
+*.fsdb
+*.pb
+*.cache
+*.hw/
+*.runs/
+*.sim/
+*.ip_user_files/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+Thumbs.db
+.DS_Store

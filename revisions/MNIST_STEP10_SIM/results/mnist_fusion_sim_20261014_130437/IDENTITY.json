@@ -1,0 +1,7 @@
+{
+  "project": "/home/ksrtakosar/CFU-Playground/proj/mnist_fusion_sim_20261014_130437",
+  "software_source": "/home/ksrtakosar/CFU-Playground/proj/mnist_cfu_fusion_20261013_v1/src",
+  "cfu_source": "/mnt/f/k/CFU_Vivado_Bridge/MNIST_CFU_FUSION_20261013_V1/step09_reset_rtl_20261014_123710_825039/cfu.v",
+  "cfu_sha256": "5620663d755ec465bf5fef71c71325ac1cb7c0bbcfa83d066df3f245132a0a78",
+  "purpose": "RISC-V RTL simulation; not FPGA measurement"
+}

@@ -1,0 +1,204 @@
+#!/usr/bin/env bash
+# Private copy for MNIST_CFU_FUSION_20261013_V1; original wrapper preserved.
+set -euo pipefail
+
+export LC_ALL=C
+
+CMD="/mnt/c/Windows/System32/cmd.exe"
+VIVADO_BAT='F:\k\Vivado\2024.2\bin\vivado.bat'
+
+# ------------------------------------------------------------
+# Vivado version query
+# ------------------------------------------------------------
+if [[ "${1:-}" == "-version" || "${1:-}" == "--version" ]]; then
+    cd /mnt/c
+    exec "$CMD" /D /C "call $VIVADO_BAT $*"
+fi
+
+ORIG="$PWD"
+
+# ------------------------------------------------------------
+# Find TCL passed after -source
+# ------------------------------------------------------------
+TCL=""
+PREV=""
+
+for ARG in "$@"; do
+    if [[ "$PREV" == "-source" ]]; then
+        TCL="$ARG"
+        break
+    fi
+    PREV="$ARG"
+done
+
+if [[ -z "$TCL" ]]; then
+    echo "ERROR: No -source TCL argument found." >&2
+    echo "ARGS: $*" >&2
+    exit 2
+fi
+
+if [[ "$TCL" = /* ]]; then
+    TCL_PATH="$TCL"
+    TCL_NAME="$(basename "$TCL")"
+else
+    TCL_PATH="$ORIG/$TCL"
+    TCL_NAME="$(basename "$TCL")"
+fi
+
+if [[ ! -f "$TCL_PATH" ]]; then
+    echo "ERROR: TCL not found: $TCL_PATH" >&2
+    exit 2
+fi
+
+# ------------------------------------------------------------
+# IMPORTANT:
+# Detect CPU-only or CPU+CFU automatically from the
+# CURRENT LiteX-generated TCL.
+# ------------------------------------------------------------
+CFU_SRC="$(
+    sed -nE \
+    's#^[[:space:]]*read_verilog[[:space:]]+\{([^}]*/cfu\.v)\}[[:space:]]*$#\1#p' \
+    "$TCL_PATH" | head -n 1
+)"
+
+VEX_SRC="$(
+    sed -nE \
+    's#^[[:space:]]*read_verilog[[:space:]]+\{([^}]*/VexRiscv_Full(Cfu)?\.v)\}[[:space:]]*$#\1#p' \
+    "$TCL_PATH" | head -n 1
+)"
+
+HAS_CFU=0
+if [[ -n "$CFU_SRC" && -f "$CFU_SRC" ]]; then
+    HAS_CFU=1
+fi
+
+if [[ -z "$VEX_SRC" ]]; then
+    VEX_SRC="$ORIG/VexRiscv_FullCfu.v"
+fi
+
+if [[ ! -f "$VEX_SRC" ]]; then
+    echo "ERROR: Cannot locate VexRiscv source."
+    echo "VEX_SRC=$VEX_SRC"
+    exit 3
+fi
+
+# ------------------------------------------------------------
+# Windows-native bridge directory
+# ------------------------------------------------------------
+BRIDGE_ROOT="/mnt/f/k/CFU_Vivado_Bridge/MNIST_CFU_FUSION_20261013_V1"
+BUILD_TAG="${MNIST_BUILD_TAG:-digilent_nexys_video_cfu}"
+if [[ ! "$BUILD_TAG" =~ ^[A-Za-z0-9_-]+$ ]]; then
+    echo "Invalid MNIST_BUILD_TAG" >&2
+    exit 2
+fi
+mkdir -p "$BRIDGE_ROOT"
+BRIDGE="$(mktemp -d "$BRIDGE_ROOT/${BUILD_TAG}_XXXXXXXX")"
+WIN_BRIDGE="$(wslpath -w "$BRIDGE")"
+
+echo "INFO: Vivado Windows bridge"
+echo "INFO: WSL gateware : $ORIG"
+echo "INFO: Windows build: $BRIDGE"
+echo "INFO: TCL          : $TCL_NAME"
+
+if [[ "$HAS_CFU" -eq 1 ]]; then
+    echo "INFO: Build mode   : CPU + CFU"
+    echo "INFO: CFU source   : $CFU_SRC"
+else
+    echo "INFO: Build mode   : CPU ONLY"
+fi
+
+echo "INFO: Vex source   : $VEX_SRC"
+echo "INFO: New isolated bridge directory; previous builds retained."
+mkdir -p "$BRIDGE"
+
+# Copy LiteX-generated gateware.
+cp -a "$ORIG"/. "$BRIDGE"/
+
+# Copy top-level LiteX gateware source.
+GATEWARE_DIR="$(dirname "$TCL_PATH")"
+TOP_V=$(find "$GATEWARE_DIR" -maxdepth 1 -name "*.v" ! -name "VexRiscv*" ! -name "cfu.v" | head -n 1)
+TOP_XDC=$(find "$GATEWARE_DIR" -maxdepth 1 -name "*.xdc" | head -n 1)
+
+cp "$TOP_V" "$BRIDGE/$(basename "$TOP_V")"
+cp "$TOP_XDC" "$BRIDGE/$(basename "$TOP_XDC")"
+
+# Copy original TCL
+cp "$TCL_PATH" "$BRIDGE/$(basename "$TCL_PATH")"
+
+# Copy exact VexRiscv source referenced by this build.
+VEX_NAME="$(basename "$VEX_SRC")"
+cp "$VEX_SRC" "$BRIDGE/$VEX_NAME"
+
+# CFU exists only for CPU+CFU builds.
+if [[ "$HAS_CFU" -eq 1 ]]; then
+    cp "$CFU_SRC" "$BRIDGE/cfu.v"
+fi
+
+# ------------------------------------------------------------
+# Replace Linux absolute paths with Windows-local bridge paths
+# ------------------------------------------------------------
+sed -Ei \
+  -e 's#read_verilog \{[^}]*/cfu\.v\}#read_verilog {cfu.v}#' \
+  -e 's#read_verilog \{[^}]*/VexRiscv_FullCfu\.v\}#read_verilog {VexRiscv_FullCfu.v}#' \
+  -e 's#read_verilog \{[^}]*/VexRiscv_Full\.v\}#read_verilog {VexRiscv_Full.v}#' \
+  -e 's#read_verilog \{[^}]*/digilent_nexys4ddr\.v\}#read_verilog {digilent_nexys4ddr.v}#' \
+  -e 's#read_verilog \{[^}]*/digilent_nexys_video\.v\}#read_verilog {digilent_nexys_video.v}#' \
+  "$BRIDGE/$TCL_NAME"
+
+# Optional: skip post-route phys_opt_design.
+# Useful for timing characterization when large negative slack causes
+# post-route physical optimization to terminate before final reports.
+if [[ "${CFU_SKIP_PHYSOPT:-0}" == "1" ]]; then
+    echo "INFO: CFU_SKIP_PHYSOPT=1 -> skipping phys_opt_design"
+    sed -Ei \
+      's#^[[:space:]]*phys_opt_design([[:space:]].*)?$#puts "INFO: phys_opt_design skipped by CFU_SKIP_PHYSOPT"#' \
+      "$BRIDGE/$TCL_NAME"
+fi
+
+echo "INFO: Patched Vivado sources:"
+grep -n 'read_verilog' "$BRIDGE/$TCL_NAME"
+
+if [[ "$HAS_CFU" -eq 1 ]]; then
+    echo "INFO: CFU SHA256 used by Vivado bridge:"
+    sha256sum "$BRIDGE/cfu.v"
+fi
+
+# ------------------------------------------------------------
+# Run Windows Vivado on native F: filesystem
+# ------------------------------------------------------------
+set +e
+
+cd /mnt/c
+
+WIN_TCL="$(wslpath -w "$BRIDGE/$TCL_NAME")"
+
+"$CMD" /D /C \
+"cd /d $WIN_BRIDGE && call $VIVADO_BAT -mode batch -source $WIN_TCL"
+
+RC=$?
+
+set -e
+
+echo "INFO: Vivado return code: $RC"
+
+# ------------------------------------------------------------
+# Copy generated results back to WSL gateware directory
+# ------------------------------------------------------------
+shopt -s nullglob
+
+for F in \
+    "$BRIDGE"/*.bit \
+    "$BRIDGE"/*.bin \
+    "$BRIDGE"/*.rpt \
+    "$BRIDGE"/*.dcp \
+    "$BRIDGE"/*.log \
+    "$BRIDGE"/*.jou \
+    "$BRIDGE"/*.ltx
+do
+    cp -f "$F" "$ORIG/"
+done
+
+echo "INFO: Vivado bridge outputs copied back to:"
+echo "      $ORIG"
+
+exit "$RC"

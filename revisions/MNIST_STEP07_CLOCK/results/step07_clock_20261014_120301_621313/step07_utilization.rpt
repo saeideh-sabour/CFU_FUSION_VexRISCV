@@ -1,0 +1,38 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2024.2 (win64) Build 5239630 Fri Nov 08 22:35:27 MST 2024
+| Date         : Wed Oct 14 12:13:48 2026
+| Host         : DESKTOP-JU6NDQJ running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -file step07_utilization.rpt
+| Design       : digilent_nexys_video
+| Device       : xc7a200tsbg484-1
+| Speed File   : -1
+| Design State : Physopt postRoute
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++----------------------------+------------------+------------+------------+---------+------+------+--------+--------+------------+
+|          Instance          |      Module      | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs | RAMB36 | RAMB18 | DSP Blocks |
++----------------------------+------------------+------------+------------+---------+------+------+--------+--------+------------+
+| digilent_nexys_video       |            (top) |       5751 |       5575 |     174 |    2 | 4179 |     15 |     26 |         17 |
+|   (digilent_nexys_video)   |            (top) |       2005 |       1859 |     144 |    2 | 2292 |     10 |     17 |          0 |
+|   Cfu                      |              Cfu |        938 |        908 |      30 |    0 |  427 |      4 |      1 |         13 |
+|     (Cfu)                  |              Cfu |        560 |        538 |      22 |    0 |  345 |      3 |      1 |          9 |
+|     mac4                   |        MnistMac4 |        137 |        137 |       0 |    0 |    0 |      0 |      0 |          4 |
+|     pool                   |     MnistPool2x2 |        246 |        238 |       8 |    0 |   82 |      1 |      0 |          0 |
+|   VexRiscv                 |         VexRiscv |       2847 |       2847 |       0 |    0 | 1460 |      1 |      8 |          4 |
+|     (VexRiscv)             |         VexRiscv |       1452 |       1452 |       0 |    0 | 1306 |      0 |      2 |          4 |
+|     IBusCachedPlugin_cache | InstructionCache |        855 |        855 |       0 |    0 |   95 |      1 |      1 |          0 |
+|     dataCache_1            |        DataCache |        548 |        548 |       0 |    0 |   59 |      0 |      5 |          0 |
++----------------------------+------------------+------------+------------+---------+------+------+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+

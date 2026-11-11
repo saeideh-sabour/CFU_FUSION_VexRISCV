@@ -1,0 +1,15 @@
+{
+  "source": "/mnt/f/k/CFU_Vivado_Bridge/MNIST_CFU_FUSION_20261013_V1/step06_bram_synth_20261014_113206_785103",
+  "build": "/mnt/f/k/CFU_Vivado_Bridge/MNIST_CFU_FUSION_20261013_V1/step07_clock_20261014_120301_621313",
+  "removed_constraint": "set_clock_groups -group [get_clocks -include_generated_clocks -of [get_nets sys_clk]] -group [get_clocks -include_generated_clocks -of [get_nets soc_crg_clkin]] -asynchronous",
+  "cfu_unchanged": true,
+  "sha256": {
+    "cfu.v": "5620663d755ec465bf5fef71c71325ac1cb7c0bbcfa83d066df3f245132a0a78",
+    "VexRiscv_FullCfu.v": "f03b9df248effe6e7a0d096e3aea4a1a2cd19d6448386472ea0ef00fdf41d5c4",
+    "digilent_nexys_video.v": "49c4988a50efa22093e1fa8f6c8fe2c6f5ca613b41e241b1bdb516919c320a6d",
+    "digilent_nexys_video.xdc": "1be3269733067d192a521a6abb29755e394c53ff720fa82d15aac40607c51777",
+    "digilent_nexys_video_mem.init": "d1de35f25c1791ebb2c2c492851364f7a498ceaa272da20ce9b0d08d91919da6",
+    "digilent_nexys_video_rom.init": "57344cb3d2e23da807db316999fae49202fc903a80f20b9da1070ea604ee232b",
+    "digilent_nexys_video_sram.init": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

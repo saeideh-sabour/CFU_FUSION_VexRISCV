@@ -1,0 +1,1 @@
+/home/ksrtakosar/MNIST_CFU_FUSION_20261013_V1/revisions/MNIST_STEP10_SIM/results/mnist_fusion_sim_20261014_130437

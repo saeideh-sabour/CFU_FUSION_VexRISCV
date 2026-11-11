@@ -1,0 +1,372 @@
+
+FILE: /home/ksrtakosar/bin/vivado
+#!/usr/bin/env bash
+set -euo pipefail
+
+export LC_ALL=C
+
+CMD="/mnt/c/Windows/System32/cmd.exe"
+VIVADO_BAT='F:\k\Vivado\2024.2\bin\vivado.bat'
+
+# ------------------------------------------------------------
+# Vivado version query
+# ------------------------------------------------------------
+if [[ "${1:-}" == "-version" || "${1:-}" == "--version" ]]; then
+    cd /mnt/c
+    exec "$CMD" /D /C "call $VIVADO_BAT $*"
+fi
+
+ORIG="$PWD"
+
+# ------------------------------------------------------------
+# Find TCL passed after -source
+# ------------------------------------------------------------
+TCL=""
+PREV=""
+
+for ARG in "$@"; do
+    if [[ "$PREV" == "-source" ]]; then
+        TCL="$ARG"
+        break
+    fi
+    PREV="$ARG"
+done
+
+if [[ -z "$TCL" ]]; then
+    echo "ERROR: No -source TCL argument found." >&2
+    echo "ARGS: $*" >&2
+    exit 2
+fi
+
+if [[ "$TCL" = /* ]]; then
+    TCL_PATH="$TCL"
+    TCL_NAME="$(basename "$TCL")"
+else
+    TCL_PATH="$ORIG/$TCL"
+    TCL_NAME="$TCL"
+fi
+
+if [[ ! -f "$TCL_PATH" ]]; then
+    echo "ERROR: TCL not found: $TCL_PATH" >&2
+    exit 2
+fi
+
+# ------------------------------------------------------------
+# IMPORTANT:
+# Detect CPU-only or CPU+CFU automatically from the
+# CURRENT LiteX-generated TCL.
+# ------------------------------------------------------------
+CFU_SRC="$(
+    sed -nE \
+    's#^[[:space:]]*read_verilog[[:space:]]+\{([^}]*/cfu\.v)\}[[:space:]]*$#\1#p' \
+    "$TCL_PATH" | head -n 1
+)"
+
+VEX_SRC="$(
+    sed -nE \
+    's#^[[:space:]]*read_verilog[[:space:]]+\{([^}]*/VexRiscv_Full(Cfu)?\.v)\}[[:space:]]*$#\1#p' \
+    "$TCL_PATH" | head -n 1
+)"
+
+HAS_CFU=0
+if [[ -n "$CFU_SRC" && -f "$CFU_SRC" ]]; then
+    HAS_CFU=1
+fi
+
+if [[ -z "$VEX_SRC" ]]; then
+    VEX_SRC="$ORIG/VexRiscv_FullCfu.v"
+fi
+
+if [[ ! -f "$VEX_SRC" ]]; then
+    echo "ERROR: Cannot locate VexRiscv source."
+    echo "VEX_SRC=$VEX_SRC"
+    exit 3
+fi
+
+# ------------------------------------------------------------
+# Windows-native bridge directory
+# ------------------------------------------------------------
+BRIDGE="/mnt/f/k/CFU_Vivado_Bridge/digilent_nexys4ddr"
+WIN_BRIDGE='F:\k\CFU_Vivado_Bridge\digilent_nexys4ddr'
+
+echo "INFO: Vivado Windows bridge"
+echo "INFO: WSL gateware : $ORIG"
+echo "INFO: Windows build: $BRIDGE"
+echo "INFO: TCL          : $TCL_NAME"
+
+if [[ "$HAS_CFU" -eq 1 ]]; then
+    echo "INFO: Build mode   : CPU + CFU"
+    echo "INFO: CFU source   : $CFU_SRC"
+else
+    echo "INFO: Build mode   : CPU ONLY"
+fi
+
+echo "INFO: Vex source   : $VEX_SRC"
+rm -rf "$BRIDGE"
+mkdir -p "$BRIDGE"
+
+# Copy LiteX-generated gateware.
+cp -a "$ORIG"/. "$BRIDGE"/
+
+# Copy top-level LiteX gateware source.
+GATEWARE_DIR="$(dirname "$TCL_PATH")"
+TOP_V=$(find "$GATEWARE_DIR" -maxdepth 1 -name "*.v" ! -name "VexRiscv*" ! -name "cfu.v" | head -n 1)
+TOP_XDC=$(find "$GATEWARE_DIR" -maxdepth 1 -name "*.xdc" | head -n 1)
+
+cp "$TOP_V" "$BRIDGE/$(basename "$TOP_V")"
+cp "$TOP_XDC" "$BRIDGE/$(basename "$TOP_XDC")"
+
+# Copy original TCL
+cp "$TCL_PATH" "$BRIDGE/$(basename "$TCL_PATH")"
+
+# Copy exact VexRiscv source referenced by this build.
+VEX_NAME="$(basename "$VEX_SRC")"
+cp "$VEX_SRC" "$BRIDGE/$VEX_NAME"
+
+# CFU exists only for CPU+CFU builds.
+if [[ "$HAS_CFU" -eq 1 ]]; then
+    cp "$CFU_SRC" "$BRIDGE/cfu.v"
+fi
+
+# ------------------------------------------------------------
+# Replace Linux absolute paths with Windows-local bridge paths
+# ------------------------------------------------------------
+sed -Ei \
+  -e 's#read_verilog \{[^}]*/cfu\.v\}#read_verilog {cfu.v}#' \
+  -e 's#read_verilog \{[^}]*/VexRiscv_FullCfu\.v\}#read_verilog {VexRiscv_FullCfu.v}#' \
+  -e 's#read_verilog \{[^}]*/VexRiscv_Full\.v\}#read_verilog {VexRiscv_Full.v}#' \
+  -e 's#read_verilog \{[^}]*/digilent_nexys4ddr\.v\}#read_verilog {digilent_nexys4ddr.v}#' \
+  -e 's#read_verilog \{[^}]*/digilent_nexys_video\.v\}#read_verilog {digilent_nexys_video.v}#' \
+  "$BRIDGE/$TCL_NAME"
+
+# Optional: skip post-route phys_opt_design.
+# Useful for timing characterization when large negative slack causes
+# post-route physical optimization to terminate before final reports.
+if [[ "${CFU_SKIP_PHYSOPT:-0}" == "1" ]]; then
+    echo "INFO: CFU_SKIP_PHYSOPT=1 -> skipping phys_opt_design"
+    sed -Ei \
+      's#^[[:space:]]*phys_opt_design([[:space:]].*)?$#puts "INFO: phys_opt_design skipped by CFU_SKIP_PHYSOPT"#' \
+      "$BRIDGE/$TCL_NAME"
+fi
+
+echo "INFO: Patched Vivado sources:"
+grep -n 'read_verilog' "$BRIDGE/$TCL_NAME"
+
+if [[ "$HAS_CFU" -eq 1 ]]; then
+    echo "INFO: CFU SHA256 used by Vivado bridge:"
+    sha256sum "$BRIDGE/cfu.v"
+fi
+
+# ------------------------------------------------------------
+# Run Windows Vivado on native F: filesystem
+# ------------------------------------------------------------
+set +e
+
+cd /mnt/c
+
+WIN_TCL="F:\\k\\CFU_Vivado_Bridge\\digilent_nexys4ddr\\$TCL_NAME"
+
+"$CMD" /D /C \
+"cd /d $WIN_BRIDGE && call $VIVADO_BAT -mode batch -source $WIN_TCL"
+
+RC=$?
+
+set -e
+
+echo "INFO: Vivado return code: $RC"
+
+# ------------------------------------------------------------
+# Copy generated results back to WSL gateware directory
+# ------------------------------------------------------------
+shopt -s nullglob
+
+for F in \
+    "$BRIDGE"/*.bit \
+    "$BRIDGE"/*.bin \
+    "$BRIDGE"/*.rpt \
+    "$BRIDGE"/*.dcp \
+    "$BRIDGE"/*.log \
+    "$BRIDGE"/*.jou \
+    "$BRIDGE"/*.ltx
+do
+    cp -f "$F" "$ORIG/"
+done
+
+echo "INFO: Vivado bridge outputs copied back to:"
+echo "      $ORIG"
+
+exit "$RC"
+
+FILE: /home/ksrtakosar/CFU-Playground/scripts/pyrun
+#!/bin/bash
+set -e
+CFU_ROOT=$(realpath $(dirname ${BASH_SOURCE[0]})/..)
+source "${CFU_ROOT}/environment"
+python3 "$@"
+
+FILE: /home/ksrtakosar/CFU-Playground/soc/common_soc.mk
+#!/usr/bin/env python3
+# Copyright 2021 The CFU-Playground Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.SHELL := /bin/bash
+
+# This Makefile builds the LiteX SoC.
+#
+# Typically, you would run 'make' in a project directory, which would use this Makefile recursively.
+#
+
+HELP_MESSAGE:= Run make from your project directory instead of using this file directly.
+
+ifndef PROJ
+  $(error PROJ must be set. $(HELP_MESSAGE))
+endif
+
+ifndef UART_SPEED
+  $(error UART_SPEED must be set. $(HELP_MESSAGE))
+endif
+
+ifndef CFU_ROOT
+  $(error CFU_ROOT must be set. $(HELP_MESSAGE))
+endif
+
+PROJ_DIR:=  $(CFU_ROOT)/proj/$(PROJ)
+CFU_V:=     $(if $(wildcard $(PROJ_DIR)/cfu.sv), $(PROJ_DIR)/cfu.sv, $(PROJ_DIR)/cfu.v)
+CFU_ARGS:=  --cpu-cfu $(CFU_V)
+TARGET_ARGS:= --target $(TARGET)
+SOFTWARE_ARGS:= --software-load --software-path $(PROJ_DIR)/build/software.bin
+
+SOC_NAME:=  $(TARGET).$(PROJ)
+OUT_DIR:=   build/$(SOC_NAME)
+UART_ARGS=  --uart-baudrate $(UART_SPEED)
+LITEX_ARGS= --output-dir $(OUT_DIR) \
+        --csr-json $(OUT_DIR)/csr.json \
+        $(CFU_ARGS) $(UART_ARGS) $(TARGET_ARGS) $(EXTRA_LITEX_ARGS)
+
+ifdef USE_OXIDE
+LITEX_ARGS += --toolchain oxide --yosys-abc9
+endif
+ifdef USE_YOSYS
+LITEX_ARGS += --synth-mode yosys
+endif
+
+ifdef USE_SYMBIFLOW
+LITEX_ARGS += --toolchain symbiflow
+else 
+ifdef USE_VIVADO
+LITEX_ARGS += --toolchain vivado
+endif
+ifdef USE_VIDEO_FRAMEBUFFER
+LITEX_ARGS += --with-video-framebuffer
+endif
+ifdef USE_SPI_SDCARD
+LITEX_ARGS += --with-spi-sdcard
+endif
+endif
+
+PYRUN:=     $(CFU_ROOT)/scripts/pyrun
+TARGET_RUN:=  MAKEFLAGS=-j8 $(PYRUN) ./common_soc.py $(LITEX_ARGS)
+
+BIOS_BIN := $(OUT_DIR)/software/bios/bios.bin
+BITSTREAM:= $(OUT_DIR)/gateware/$(TARGET).bit
+
+.PHONY: bitstream litex-software load_hook prog clean check-timing
+
+bitstream: $(BITSTREAM) check-timing
+
+litex-software: $(BIOS_BIN)
+
+ifdef USE_VIVADO
+ifndef IGNORE_TIMING
+check-timing:
+	@echo Checking Vivado timing.
+	@echo To disable this check, set IGNORE_TIMING=1
+	@if grep -B 6 "Timing constraints are not met" $(OUT_DIR)/gateware/vivado.log  ; then exit 1 ; fi
+else
+check-timing:
+	@echo Vivado timing check is skipped.
+endif
+else
+check-timing:
+	@echo Timing check performed only for Vivado.
+endif
+
+load_hook:
+	$(TARGET_RUN) $(SOFTWARE_ARGS)
+
+prog: $(BITSTREAM) check-timing
+	@echo Loading bitstream onto board
+	$(TARGET_RUN) --no-compile-software --load
+
+clean:
+	@echo Removing $(OUT_DIR)
+	rm -rf $(OUT_DIR)
+
+$(CFU_V):
+	$(error $(CFU_V) not found. $(HELP_MESSAGE))
+
+$(BIOS_BIN): $(CFU_V)
+	$(TARGET_RUN)
+
+$(BITSTREAM): $(CFU_V)
+	@echo Building bitstream for $(TARGET). CFU option: $(CFU_ARGS)
+	$(TARGET_RUN) --build
+
+BUILD RULES: /home/ksrtakosar/CFU-Playground/proj/proj.mk
+85: ifdef SKIP_TFLM
+86: export DEFINES    += SKIP_TFLM
+104: LXTERM       := $(SOC_DIR)/bin/litex_term
+108: CFU_GEN         := $(PROJ_DIR)/cfu_gen.py
+109: CFU_VERILOG     := $(if $(wildcard $(PROJ_DIR)/cfu.sv),$(PROJ_DIR)/cfu.sv,$(PROJ_DIR)/cfu.v)
+114: CFU_GEN_EXTRA_ARGS ?=
+117: BUILD_DIR_EXTRA_DEP ?=
+125: MLCOMMONS_SRC_DIR  := $(CFU_ROOT)/third_party/mlcommons
+126: SAXON_SRC_DIR      := $(CFU_ROOT)/third_party/SaxonSoc
+127: DONUT_SRC_DIR      := $(CFU_ROOT)/third_party/litex-donut
+130: LITEX_RENODE_DIR   := $(CFU_ROOT)/third_party/python/litex-renode
+131: SRC_DIR            := $(abspath $(PROJ_DIR)/src)
+133: TFLM_SRC_DIR       := $(CFU_ROOT)/third_party/tflite-micro
+134: TFLM_MAKE_DIR      := $(TFLM_SRC_DIR)/tensorflow/lite/micro/tools/make
+135: TFLM_TP_DIR        := $(TFLM_SRC_DIR)/third_party
+138: TFLM_COPY_SRC_DIRS := \
+204: renode: renode-scripts
+221: 		-DINCLUDE_DIR="$(PROJ_DIR)" -DVTOP="$(CFU_VERILOG)" -DVIL_DIR="$(VIL_DIR)" $${VERILATOR_PATH:+"-DUSER_VERILATOR_DIR=$$VERILATOR_PATH"} \
+237: software: $(SOFTWARE_BIN)
+239: $(SOFTWARE_BIN) $(SOFTWARE_ELF): litex-software build-dir
+243: # cfu_gen should not update cfu.v unless it has changed
+244: ifneq (,$(wildcard $(CFU_GEN)))
+245: $(CFU_VERILOG): generate_cfu
+249: 	$(PYRUN) $(CFU_GEN) $(CFU_GEN_EXTRA_ARGS)
+255: #$(COPY) $(TFLM_SRC_DIR)/third_party  $(BUILD_DIR)/src/third_party
+256: #	$(COPY) $(TFLM_SRC_DIR)/third_party  $(BUILD_DIR)/src/third_party
+264: ifndef SKIP_TFLM
+266: 	for d in $(TFLM_COPY_SRC_DIRS); do \
+268: 		$(COPY) `find $(TFLM_SRC_DIR)/$$d $(TFLM_FIND_PARAMS)` $(BUILD_DIR)/src/$$d; \
+270: 	$(COPY) $(TFLM_SRC_DIR)/tensorflow/lite/micro/kernels/conv_test* $(BUILD_DIR)/src/tensorflow/lite/micro/kernels
+271: 	$(COPY) $(TFLM_SRC_DIR)/tensorflow/lite/micro/kernels/depthwise_conv_test* $(BUILD_DIR)/src/tensorflow/lite/micro/kernels
+274: 		$(COPY) `find $(TFLM_SRC_DIR)/$$d -maxdepth 1 -type f -regex '.*_data\.\(h\|cc\)'` $(BUILD_DIR)/src/$$d; \
+277: 	$(COPY) $(TFLM_SRC_DIR)/tensorflow/lite/micro/examples/person_detection/model_settings* $(BUILD_DIR)/src/tensorflow/lite/micro/examples/person_detection
+291: build-dir: $(BUILD_DIR)/src tflite-micro-src $(BUILD_DIR_EXTRA_DEP) 
+294: 	$(COPY) $(MLCOMMONS_SRC_DIR)/*       $(BUILD_DIR)/src
+295: 	$(COPY) $(SAXON_SRC_DIR)/riscv.h     $(BUILD_DIR)/src
+296: 	$(COPY) $(DONUT_SRC_DIR)/donut.*     $(BUILD_DIR)/src
+297: 	$(COPY) $(SRC_DIR)/*                 $(BUILD_DIR)/src
+299: ifdef SKIP_TFLM
+309: .PHONY: litex-software
+310: litex-software: $(CFU_VERILOG)
+311: 	$(SOC_MK) litex-software
+318: prog: $(CFU_VERILOG)
+321: bitstream: $(CFU_VERILOG)
+324: run-renode: $(SOFTWARE_ELF) renode-scripts
+328: unit-renode: $(SOFTWARE_ELF) renode-scripts
+332: synth: $(CFU_VERILOG)
+375: load: $(CFU_VERILOG) $(SOFTWARE_BIN)

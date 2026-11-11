@@ -1,0 +1,11 @@
+Goal: reusable Conv+Requant+ReLU and Pool CFUs; internal fusion; FC on CPU.
+STEP06 routed successfully; WNS +0.660 ns under previous constraints.
+Review found overlapping clock groups and TIMING-14 clock LUT.
+STEP07: explicit input BUFG, removed clock dont_touch attributes,
+removed overlapping clock group, added board configuration voltage.
+CFU RTL unchanged. No bitstream or board benchmark in this step.
+Vivado exit code: 0
+Results: /home/ksrtakosar/MNIST_CFU_FUSION_20261013_V1/revisions/MNIST_STEP07_CLOCK/results/step07_clock_20261014_120301_621313
+Checkpoint directory: /mnt/f/k/CFU_Vivado_Bridge/MNIST_CFU_FUSION_20261013_V1/step07_clock_20261014_120301_621313
+Next: review STEP07 timing, clock interaction, DRC and methodology;
+then bitstream, board correctness, CPU/CFU cycles and second board.

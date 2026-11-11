@@ -1,0 +1,11 @@
+sample=0 label=7 prediction=7
+sample=1 label=2 prediction=2
+sample=2 label=1 prediction=1
+sample=3 label=0 prediction=0
+sample=4 label=4 prediction=4
+sample=5 label=1 prediction=1
+sample=6 label=4 prediction=4
+sample=7 label=9 prediction=9
+sample=8 label=5 prediction=5
+sample=9 label=9 prediction=9
+CPU_Q31_REFERENCE PASS mismatches=0 (host only, no CFU measurement)

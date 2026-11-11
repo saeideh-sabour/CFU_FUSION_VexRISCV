@@ -1,0 +1,12 @@
+{
+  "model/model_data.h": "141679b3baf7e082b1a9827ee3ede124491d957e70ac6f59be43d8bd5ca2b859",
+  "rtl/cfu.v": "65d7aba2da74ff184e791a7ffe649690c4fafda1b89cb292472a49215866e808",
+  "simulation/tb_step05.cpp": "c4e635532112a1315fecaf168ff1f78b4028f355aa613698fdc2bb6c13e16163",
+  "snapshot/VexRiscv_FullCfu.v": "f03b9df248effe6e7a0d096e3aea4a1a2cd19d6448386472ea0ef00fdf41d5c4",
+  "snapshot/digilent_nexys_video.v": "b47cc0a628eb05a3fca2973aabc07add7811294aa81ef7529ae9a1698c214511",
+  "snapshot/digilent_nexys_video.xdc": "d5726fd60b5e8cad501ea83cfc71c095ffd88211ed393945047424d8f8ae6201",
+  "software/cpu_reference.c": "77888a41031de9f6e26eb057c7d936a41fd7af49daef0feff499d76761c468bb",
+  "software/step03/cfu_driver.h": "56a1d145c273a960066d5a0cf964fd4eea513266ea6dde74782980888e3f9243",
+  "tools/run_tests.sh": "bddb78227425d7041ea4ad0231e3a41eb5ad0ef0263b5f3d862ede469c5863d1",
+  "tools/synth_only.py": "bfc145657bedc6640ac43d30a67f02a4b1ab61486d5e4168355b413e3495fd06"
+}

@@ -1,0 +1,7 @@
+Execution: CFU-Playground PLATFORM=sim, RTL simulation.
+10 images per mode; 40 result rows; all recorded comparisons passed.
+CPU_ONLY executes software on the same SoC containing the CFU.
+Conv and Pool cycles are currently combined per network stage.
+Timing excludes output verification and UART printing.
+CFU timing includes operand transfers, configuration and output drain.
+Separate no-CFU resource baseline and physical-board measurements pending.

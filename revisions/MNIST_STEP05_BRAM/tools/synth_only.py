@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+"""Isolated synthesis of the uploaded SoC snapshot with STEP05 Cfu. No routing."""
+import argparse, hashlib, json, re, shutil, subprocess, sys
+from datetime import datetime
+from pathlib import Path
+
+root=Path(__file__).resolve().parent.parent
+parser=argparse.ArgumentParser()
+parser.add_argument('--stop-old-build', action='store_true',
+                    help='Preserve old reports then stop ONLY Vivado matching the exact old bridge path.')
+args=parser.parse_args()
+old=Path('/mnt/f/k/CFU_Vivado_Bridge/MNIST_CFU_FUSION_20261013_V1/digilent_nexys_video_cfu_XC8tM309')
+ps='/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe'
+cmd='/mnt/c/Windows/System32/cmd.exe'
+stamp=datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+result=root/'results'/('synth_'+stamp)
+
+def runps(script):
+    p=subprocess.run([ps,'-NoProfile','-NonInteractive','-Command',script],cwd='/mnt/c',
+                     stdout=subprocess.PIPE,stderr=subprocess.STDOUT,encoding='utf-8',errors='replace')
+    if p.returncode:
+        raise SystemExit('WINDOWS PROCESS CHECK FAILED:\n'+p.stdout)
+    return p.stdout.strip()
+
+# Verify package integrity and local functional run before launching expensive work.
+manifest=json.loads((root/'SHA256.json').read_text())
+for name,digest in manifest.items():
+    if hashlib.sha256((root/name).read_bytes()).hexdigest()!=digest:
+        raise SystemExit('PACKAGE HASH MISMATCH: '+name)
+log=root/'results/local_rtl/run.log'
+if not log.is_file() or 'RTL_ALL_MODES PASS samples=10 modes=3 mismatches=0' not in log.read_text():
+    raise SystemExit('Run bash tools/run_tests.sh first; local RTL PASS required.')
+
+# The uploaded snapshot did not include ROM/SRAM initialization files.
+# Recover exact originals from the preserved build directory, never invent them.
+for name in ('VexRiscv_FullCfu.v','digilent_nexys_video.v','digilent_nexys_video.xdc'):
+    if not (old/name).is_file() or (old/name).read_bytes()!=(root/'snapshot'/name).read_bytes():
+        raise SystemExit('OLD BUILD SOURCE MISSING/CHANGED: '+name)
+text=(root/'snapshot/digilent_nexys_video.v').read_text()
+inits=sorted(set(re.findall(r'\$readmem[hb]\("([^"\n]+)"',text)))
+for name in inits:
+    if Path(name).name!=name or not (old/name).is_file():
+        raise SystemExit('MISSING ORIGINAL MEMORY INITIALIZATION: '+name)
+result.mkdir(parents=True,exist_ok=False)
+preserved=result/'old_evidence'
+preserved.mkdir()
+for pat in ('*.rpt','*.log','*.tcl'):
+    for f in old.glob(pat):
+        shutil.copy2(f,preserved/f.name)
+shutil.copy2(old/'cfu.v',preserved/'cfu_step03.v')
+
+if args.stop_old_build:
+    oldwin=subprocess.check_output(['wslpath','-w',str(old)],text=True).strip()
+    escaped=oldwin.replace("'","''")
+    script="""$ErrorActionPreference='Stop';
+$targets=@(Get-CimInstance Win32_Process -Filter \"Name='vivado.exe'\" | Where-Object {
+ $_.CommandLine -and $_.CommandLine.IndexOf('TARGET',[System.StringComparison]::OrdinalIgnoreCase) -ge 0
+});
+foreach($p in $targets){Write-Output ('Stopping OLD project Vivado PID '+$p.ProcessId);Stop-Process -Id $p.ProcessId -ErrorAction Stop};
+if($targets.Count -eq 0){Write-Output 'No matching OLD project Vivado process found'}
+""".replace('TARGET',escaped)
+    print(runps(script),flush=True)
+active=runps("@(Get-Process -Name vivado -ErrorAction SilentlyContinue) | ForEach-Object { Write-Output $_.Id }")
+if active:
+    raise SystemExit('Vivado is still running (PID(s): '+active+'). No new synthesis started. Do not stop unrelated projects.')
+
+bridge=old.parent/('step05_bram_synth_'+stamp)
+bridge.mkdir(exist_ok=False)
+for f in (root/'snapshot').iterdir():
+    if f.is_file():shutil.copy2(f,bridge/f.name)
+for name in inits:shutil.copy2(old/name,bridge/name)
+shutil.copy2(root/'rtl/cfu.v',bridge/'cfu.v')
+# These reports use the SAME synthesis directive, SoC, CPU and XDC as the old build.
+tcl='''create_project -force -name step05_synth -part xc7a200t-sbg484-1
+set_msg_config -id {Common 17-55} -new_severity {Warning}
+read_verilog {cfu.v}
+read_verilog {VexRiscv_FullCfu.v}
+read_verilog {digilent_nexys_video.v}
+read_xdc {digilent_nexys_video.xdc}
+set_property PROCESSING_ORDER EARLY [get_files digilent_nexys_video.xdc]
+synth_design -directive default -top digilent_nexys_video -part xc7a200t-sbg484-1
+report_utilization -hierarchical -file step05_utilization_hierarchical_synth.rpt
+report_utilization -file step05_utilization_synth.rpt
+report_timing_summary -max_paths 10 -file step05_timing_synth.rpt
+write_checkpoint -force step05_synth.dcp
+puts "STEP05_SYNTH_ONLY_COMPLETE_NO_ROUTING"
+quit
+'''
+(bridge/'step05_synth.tcl').write_text(tcl)
+win=subprocess.check_output(['wslpath','-w',str(bridge)],text=True).strip()
+command='cd /d '+win+' && call F:\\k\\Vivado\\2024.2\\bin\\vivado.bat -mode batch -source step05_synth.tcl'
+print('Windows build: '+str(bridge),flush=True)
+print('Results: '+str(result),flush=True)
+print('SYNTHESIS ONLY: placement/routing/bitstream will NOT run.',flush=True)
+with (result/'console.log').open('w') as log:
+    p=subprocess.Popen([cmd,'/D','/C',command],cwd='/mnt/c',stdout=subprocess.PIPE,
+                       stderr=subprocess.STDOUT,encoding='utf-8',errors='replace')
+    for line in p.stdout:
+        print(line,end='',flush=True);log.write(line);log.flush()
+    rc=p.wait()
+for pat in ('*.rpt','*.log','*.jou','*.tcl'):
+    for f in bridge.glob(pat):shutil.copy2(f,result/f.name)
+(result/'BUILD_IDENTITY.json').write_text(json.dumps({
+ 'bridge':str(bridge),'exit_code':rc,'cfu_sha256':hashlib.sha256((bridge/'cfu.v').read_bytes()).hexdigest(),
+ 'purpose':'Synthesis only. No final timing, route, FPGA functionality or performance claim.'},indent=2))
+if rc or not (result/'step05_utilization_hierarchical_synth.rpt').is_file():
+    raise SystemExit('SYNTHESIS FAILED; reports/logs preserved: '+str(result))
+print('\n=== STEP05 HIERARCHICAL SYNTHESIS ===')
+print((result/'step05_utilization_hierarchical_synth.rpt').read_text(errors='replace'))
+timing=(result/'step05_timing_synth.rpt').read_text(errors='replace').splitlines()
+print('\n=== STEP05 SYNTHESIS TIMING SUMMARY ===')
+for i,line in enumerate(timing):
+    if 'WNS(ns)' in line:
+        print('\n'.join(timing[i:i+4]));break
+print('SYNTH_ONLY_COMPLETE — NOT FPGA/TIMING PASS')
+print('Send the hierarchical table and timing summary above.')
+with (root/'PROJECT_STATE.md').open('a') as f:
+    f.write('\nLocal synthesis completed; inspect reports before implementation: '+str(result)+'\n')

@@ -1,0 +1,77 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2024.2 (win64) Build 5239630 Fri Nov 08 22:35:27 MST 2024
+| Date         : Wed Oct 14 12:22:11 2026
+| Host         : DESKTOP-JU6NDQJ running 64-bit major release  (build 9200)
+| Command      : report_timing -to [get_pins FDCE/D] -delay_type min -max_paths 20 -path_type full_clock_expanded -file reset_entry_hold.rpt
+| Design       : digilent_nexys_video
+| Device       : 7a200t-sbg484
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Physopt postRoute
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             1.518ns  (arrival time - required time)
+  Source:                 soc_basesoc_reset_storage_reg[0]/C
+                            (rising edge-triggered cell FDRE clocked by soc_crg_clkout0  {rise@0.000ns fall@6.667ns period=13.333ns})
+  Destination:            FDCE/D
+                            (rising edge-triggered cell FDCE clocked by clk100  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             clk100
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk100 rise@0.000ns - soc_crg_clkout0 rise@0.000ns)
+  Data Path Delay:        0.303ns  (logic 0.186ns (61.355%)  route 0.117ns (38.645%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        -1.464ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    2.050ns
+    Source Clock Delay      (SCD):    3.265ns
+    Clock Pessimism Removal (CPR):    0.248ns
+  Clock Uncertainty:      0.157ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.121ns
+    Phase Error              (PE):    0.087ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock soc_crg_clkout0 rise edge)
+                                                      0.000     0.000 r  
+    R4                                                0.000     0.000 r  clk100 (IN)
+                         net (fo=0)                   0.000     0.000    clk100
+    R4                   IBUF (Prop_ibuf_I_O)         0.243     0.243 r  clk100_IBUF_inst/O
+                         net (fo=1, routed)           0.676     0.919    clk100_IBUF
+    BUFGCTRL_X0Y4        BUFG (Prop_bufg_I_O)         0.026     0.945 r  step07_input_clock_buf/O
+                         net (fo=9, routed)           0.745     1.690    soc_crg_clkin
+    MMCME2_ADV_X1Y0      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                      0.050     1.740 r  MMCME2_ADV/CLKOUT0
+                         net (fo=1, routed)           0.912     2.652    soc_crg_clkout0
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.026     2.678 r  BUFG/O
+                         net (fo=4656, routed)        0.588     3.265    sys_clk
+    SLICE_X133Y183       FDRE                                         r  soc_basesoc_reset_storage_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X133Y183       FDRE (Prop_fdre_C_Q)         0.141     3.406 r  soc_basesoc_reset_storage_reg[0]/Q
+                         net (fo=4, routed)           0.117     3.523    soc_basesoc_reset_storage_reg_n_0_[0]
+    SLICE_X135Y183       LUT3 (Prop_lut3_I0_O)        0.045     3.568 r  FDCE_i_1/O
+                         net (fo=1, routed)           0.000     3.568    soc_crg_reset
+    SLICE_X135Y183       FDCE                                         r  FDCE/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk100 rise edge)     0.000     0.000 r  
+    R4                                                0.000     0.000 r  clk100 (IN)
+                         net (fo=0)                   0.000     0.000    clk100
+    R4                   IBUF (Prop_ibuf_I_O)         0.431     0.431 r  clk100_IBUF_inst/O
+                         net (fo=1, routed)           0.734     1.165    clk100_IBUF
+    BUFGCTRL_X0Y4        BUFG (Prop_bufg_I_O)         0.029     1.194 r  step07_input_clock_buf/O
+                         net (fo=9, routed)           0.856     2.050    soc_crg_clkin
+    SLICE_X135Y183       FDCE                                         r  FDCE/C
+                         clock pessimism             -0.248     1.802    
+                         clock uncertainty            0.157     1.959    
+    SLICE_X135Y183       FDCE (Hold_fdce_C_D)         0.092     2.051    FDCE
+  -------------------------------------------------------------------
+                         required time                         -2.051    
+                         arrival time                           3.568    
+  -------------------------------------------------------------------
+                         slack                                  1.518    
+
+
+
+

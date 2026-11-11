@@ -1,0 +1,9 @@
+{
+  "/home/ksrtakosar/CFU-Playground/proj/mnist_cfu_fusion_20261013_v1/Makefile": "037eb63d01f266055090cc993d93b7e280b18ed7ee2f4f2ce5fe044cc595e577",
+  "/home/ksrtakosar/CFU-Playground/proj/mnist_cfu_fusion_20261013_v1/cfu.v": "d0e2f531810d32a2996dad025303367ac3c71e3c2243603b753381d1091c45f8",
+  "/home/ksrtakosar/CFU-Playground/proj/mnist_cfu_fusion_20261013_v1/src/proj_menu.cc": "b237aee9177d7ff27d9b2de69ed501f584a1773da16f4eef130850f2e0bb93cd",
+  "/home/ksrtakosar/CFU-Playground/proj/mnist_cfu_fusion_20261013_v1/src/cfu_driver.h": "56a1d145c273a960066d5a0cf964fd4eea513266ea6dde74782980888e3f9243",
+  "/home/ksrtakosar/CFU-Playground/proj/mnist_cfu_fusion_20261013_v1/src/model_data.h": "141679b3baf7e082b1a9827ee3ede124491d957e70ac6f59be43d8bd5ca2b859",
+  "/home/ksrtakosar/MNIST_CFU_FUSION_20261013_V1/tools/step03/bin/vivado": "31677225e7f751f0dbd054c378f765cb55cf44fefe1b82fa3ddaadc7ba2f998c",
+  "/home/ksrtakosar/CFU-Playground/proj/mnist_cfu_fusion_20261013_v1/src/cpu_reference_impl.h": "1e5a4467a2c437fe85669fb831db90e646c678c6fd8adf6ecbc8f1b7243adf8c"
+}

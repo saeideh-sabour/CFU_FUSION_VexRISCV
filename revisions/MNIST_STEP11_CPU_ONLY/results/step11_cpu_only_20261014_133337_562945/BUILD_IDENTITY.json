@@ -1,0 +1,18 @@
+{
+  "mode": "CPU_ONLY_NO_CFU",
+  "target": "digilent_nexys_video",
+  "system_clock_hz": 75000000,
+  "reference": "/mnt/f/k/CFU_Vivado_Bridge/MNIST_CFU_FUSION_20261013_V1/step09_reset_rtl_20261014_123710_825039",
+  "generated_sources": "/home/ksrtakosar/MNIST_CFU_FUSION_20261013_V1/revisions/MNIST_STEP11_CPU_ONLY/build_20261014_132523/soc/gateware",
+  "note": "Independent BIOS ROM differs by 8 bytes from STEP09.",
+  "sha256": {
+    "digilent_nexys_video.v": "ef3532b2993d281db440ed48e0155e7c2c02dbd8bea56effe9b92bec279051b1",
+    "digilent_nexys_video.xdc": "1be3269733067d192a521a6abb29755e394c53ff720fa82d15aac40607c51777",
+    "digilent_nexys_video_mem.init": "4c3e4aec468bcf80d2eac9945b16c0584082599afe3c9c20975ad4f5677972be",
+    "digilent_nexys_video_rom.init": "e60873a4f82ce06728b256be7c7b8d4b20e3aa46b879f03000e5561b68df0d46",
+    "digilent_nexys_video_sram.init": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "step09_reset_constraints.xdc": "48c670a0b4d0f55238cfda904891934e311f2c26686e784ac8694e60890db8a8",
+    "step11.tcl": "c04a64180eb6e0cfea767a03d791e6801b6b13bad47410e1228bcd6a16419fc4",
+    "VexRiscv_Full.v": "506a6e6dd161ab96459bf4e08c2388435cb0ffb5f5e591c843b2f042fa4a3eee"
+  }
+}

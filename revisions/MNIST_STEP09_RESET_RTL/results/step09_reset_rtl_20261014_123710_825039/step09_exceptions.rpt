@@ -1,0 +1,22 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2024.2 (win64) Build 5239630 Fri Nov 08 22:35:27 MST 2024
+| Date         : Wed Oct 14 12:46:55 2026
+| Host         : DESKTOP-JU6NDQJ running 64-bit major release  (build 9200)
+| Command      : report_exceptions -file step09_exceptions.rpt
+| Design       : digilent_nexys_video
+| Device       : 7a200t-sbg484
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Physopt postRoute
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Exceptions Report
+
+Position  From                                                                              Through                                            To                                                                                Setup           Hold            Status           
+--------  --------------------------------------------------------------------------------  -------------------------------------------------  --------------------------------------------------------------------------------  --------------  --------------  -----------------
+2         *                                                                                 [get_nets -hierarchical -filter {mr_ff == TRUE}]   *                                                                                 false           false           
+4         [get_pins -filter {REF_PIN_NAME == C} -of_objects [get_cells -hierarchical -filt  *                                                  [get_pins -filter {REF_PIN_NAME == D} -of_objects [get_cells -hierarchical -filt  max=2           -               
+          er {ars_ff1 == TRUE}]]                                                                                                               er {ars_ff2 == TRUE}]]                                                                                            
+5         [get_cells -quiet step09_request_reg]                                             *                                                  [get_pins -quiet {step09_sw_sync_reg[0]/D}]                                       max_dpo=2       -               
+6         [get_ports cpu_reset]                                                             *                                                  [get_pins -quiet {step09_button_sync_reg[0]/D}]                                   false           false           
+
